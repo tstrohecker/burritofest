@@ -22,14 +22,19 @@ var t = new twitter({
 });
 
 app.get('/tweetcount', function(req, res) {
-    //req.query.search;
-    var search = '#testYo';
-    //req.query.since;
-    var since = '2013-10-01';
+    var search = req.query.search;
+    //var search = '#charcade';
+    var since = req.query.since;
+    //var since = '2013-10-01';
+
+    var d = new Date();
+    d.setDate(d.getDate() - 30);
+    console.log(d);
 
     t.get('search/tweets', { q: search + ' since:' + since, count: 100 }, function(err, reply) {
-        var counter = {};
+        var counter = [];
         var statuses = reply.statuses;
+        //console.log(statuses);
 
         for (var index in statuses) {
             var user = statuses[index].user;
@@ -37,23 +42,32 @@ app.get('/tweetcount', function(req, res) {
             var screen_name = user.screen_name;
             //console.log(user);
             //console.log(status);
-            if (typeof counter[screen_name] === 'undefined') {
-                counter[screen_name] = {
-                    count: 1,//isNaN(counter[screen_name].count)?1:counter[screen_name].count+1,
+
+            arrayIndex = getIndex(counter, 'screen_name', screen_name);
+            if (arrayIndex === -1) {
+                counter.push({
+                    screen_name: screen_name,
+                    count: 1,
                     name: user.name,
                     image: user.profile_image_url
-                }
+                })
             }
             else {
-                counter[screen_name].count += 1;
+                counter[arrayIndex].count = counter[arrayIndex].count + 1;
             }
         }
-        console.log(counter);
+        //console.log(counter);
         res.send(counter);
     });
 });
 
 
+function getIndex(array, key, value) {
+    for (var index = 0, length = array.length; index < length; index++) {
+        if (array[index][key] === value) return index;
+    }
+    return -1;
+}
 
 //var io = require('socket.io').listen(app.listen(port));
 //io.sockets.on('connection', function (socket) {
